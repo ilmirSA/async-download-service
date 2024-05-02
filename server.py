@@ -17,12 +17,12 @@ async def cmd_run(command):
         yield stdout
 
 
-async def archive():
-    command = 'zip - t.txt '
+async def archive(hash):
+    command = f'zip -r - photos/{hash}/'
     async with aiofiles.open("archive.zip", "wb") as file:
         async for content in cmd_run(command):
             await file.write(content)
-
+    
 
 
 
@@ -49,9 +49,32 @@ async def uptime_handler(request):
         # await asyncio.sleep(INTERVAL_SECS)
 
 
+async def handle_index_page(request):
+    async with aiofiles.open('index.html', mode='r') as index_file:
+        index_contents = await index_file.read()
+    return web.Response(text=index_contents, content_type='text/html')
+
+
+
+
+
+
+async def get_archive(request):
+    print(request)
+    hash=request.match_info.get('archive_hash', "Anonymous")
+    text = f"Hellow {hash}"
+    await archive(hash)
+    print(text)
+    return web.Response(text=text)
+
+
+
 if __name__ == '__main__':
     app = web.Application()
     app.add_routes([
-        web.get('/', uptime_handler),
+        web.get('/', handle_index_page),
+        web.get('/archive/{archive_hash}/', get_archive)
+        # web.get('/', uptime_handler),
     ])
     web.run_app(app)
+
