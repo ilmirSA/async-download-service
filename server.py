@@ -1,8 +1,9 @@
 import asyncio
 from aiohttp import web
-import aiohttp
 import aiofiles 
+import logging
 
+logging.basicConfig(level = logging.DEBUG)
 import os
 
 
@@ -14,7 +15,6 @@ async def cmd_run(hash):
         stderr=asyncio.subprocess.PIPE)
     while not proc.stdout.at_eof():
         stdout = await proc.stdout.read(n=100)
-        print(stdout)
         yield stdout
 
        
@@ -29,13 +29,15 @@ async def get_archive(request):
     hash=request.match_info.get('archive_hash', "Anonymous")
     
     if not os.path.exists(f"photos/{hash}/"):
-        raise aiohttp.web.HTTPNotFound(text='Архив не существует или был удален')
+        raise web.HTTPNotFound(text='Архив не существует или был удален')
     
     response = web.StreamResponse()
     response.headers['Content-Disposition:']='attachment; filename=archive.zip'
     await response.prepare(request)
     async for data in cmd_run(hash):
+        logging.info( 'Sending archive chunk ' )
         await response.write(data)
+        await asyncio.sleep(100)
     return response
 
 
