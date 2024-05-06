@@ -35,7 +35,7 @@ async def get_archive(request):
     response.headers['Content-Disposition:']='attachment; filename=archive.zip'
     await response.prepare(request)
     async for data in cmd_run(hash):
-        logging.info( 'Sending archive chunk ' )
+        logging.info( 'Sending archive chunk' )
         await response.write(data)
         await asyncio.sleep(100)
     return response
