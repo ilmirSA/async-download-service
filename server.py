@@ -1,9 +1,9 @@
 import asyncio
 from aiohttp import web
-import datetime
+import aiohttp
 import aiofiles 
 
-
+import os
 
 
 async def cmd_run(hash):
@@ -27,6 +27,10 @@ async def handle_index_page(request):
 async def get_archive(request):
    
     hash=request.match_info.get('archive_hash', "Anonymous")
+    
+    if not os.path.exists(f"photos/{hash}/"):
+        raise aiohttp.web.HTTPNotFound(text='Архив не существует или был удален')
+    
     response = web.StreamResponse()
     response.headers['Content-Disposition:']='attachment; filename=archive.zip'
     await response.prepare(request)
