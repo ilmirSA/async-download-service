@@ -1,0 +1,19 @@
+version: "3"
+
+
+services:
+
+
+  server:
+ 
+
+
+    build: .
+
+
+    command: python3 server.py
+
+
+
+    ports:
+      - 8080:8080
