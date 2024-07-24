@@ -7,16 +7,16 @@ logging.basicConfig(level = logging.DEBUG)
 import os
 
 
-async def cmd_run(hash):
-    command = f'zip -r - photos/{hash}/'
-    proc = await asyncio.create_subprocess_shell(
-        command,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE)
-    while not proc.stdout.at_eof():
-        stdout = await proc.stdout.read(n=100)
-        yield stdout
-
+async def get_process(path):
+    
+        command = ['zip','-r','-',path]
+        process = await asyncio.create_subprocess_exec(
+            *command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE)
+        return process
+    
+        
        
 async def handle_index_page(request):
     async with aiofiles.open('index.html', mode='r') as index_file:
@@ -25,20 +25,37 @@ async def handle_index_page(request):
 
 
 async def get_archive(request):
-   
-    hash=request.match_info.get('archive_hash', "Anonymous")
     
-    if not os.path.exists(f"photos/{hash}/"):
+    hash=request.match_info.get('archive_hash', "Anonymous")
+    path=f"photos/{hash}/"
+    
+    if not os.path.exists(path):
         raise web.HTTPNotFound(text='Архив не существует или был удален')
     
     response = web.StreamResponse()
+    
     response.headers['Content-Disposition:']='attachment; filename=archive.zip'
     await response.prepare(request)
-    async for data in cmd_run(hash):
+    process=await get_process(path)
+    try:
+        while not process.stdout.at_eof():
+            stdout = await process.stdout.read(n=100)
+            
+            await response.write(stdout)
         logging.info( 'Sending archive chunk' )
-        await response.write(data)
-        await asyncio.sleep(100)
-    return response
+        return response
+    except asyncio.CancelledError:
+        logging.info( 'Download was interrupted' )
+        raise
+    finally:
+        if  process.returncode is None:
+            process.kill()
+            process.communicate()
+       
+        
+
+        
+   
 
 
 if __name__ == '__main__':
