@@ -27,10 +27,10 @@ async def handle_index_page(request):
 
 async def get_archive(request,delay,path):
     
-    hash=request.match_info.get('archive_hash', "Anonymous")
+    hash=request.match_info.get('archive_hash', None)
     path=f"{path}/{hash}/"
     
-    if not os.path.exists(path):
+    if not os.path.exists(path)or not hash:
         raise web.HTTPNotFound(text='Архив не существует или был удален')
     
     response = web.StreamResponse()
