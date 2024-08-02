@@ -10,7 +10,7 @@ import os
 
 async def get_process(path):
     
-        command = ['zip','-r','-',path]
+        command = ['zip','-jr','-',path]
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=asyncio.subprocess.PIPE,
@@ -39,11 +39,12 @@ async def get_archive(request,delay,path):
     await response.prepare(request)
     process=await get_process(path)
 
-    if delay:
-        await asyncio.sleep(delay)
+    
 
     try:
         while not process.stdout.at_eof():
+            if delay:
+               await asyncio.sleep(delay)
             stdout = await process.stdout.read(n=100)
             
             await response.write(stdout)
