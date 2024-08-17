@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
 
     parser = argparse.ArgumentParser(
-        description="Создает из ссылки битлинк или показывает кол-во переходов по битлинку")
+        description="Скачивает файлы и упаковывает из в zip")
     parser.add_argument('-l', '--logging', type=bool,default='True')
     parser.add_argument('-d', '--delay', type=int, default=None)
     parser.add_argument('-p', '--path', type=str,default='photos')
